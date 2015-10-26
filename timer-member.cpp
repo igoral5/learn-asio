@@ -16,8 +16,7 @@ class Handler
 {
 public:
 	Handler(boost::asio::io_service& io, long beg, long step, size_t count) :
-		m_io(io),
-		m_timer(m_io, boost::posix_time::seconds(beg)),
+		m_timer(io, boost::posix_time::seconds(beg)),
 		m_step(step), m_count(count), m_current(0)
 	{
 		m_timer.async_wait(boost::bind(&Handler::handler, this, boost::asio::placeholders::error));
@@ -37,7 +36,6 @@ public:
 		}
 	}
 private:
-	boost::asio::io_service& m_io;
 	boost::asio::deadline_timer m_timer;
 	long m_step;
 	size_t m_count;

@@ -15,7 +15,7 @@
 void
 handler_dead_timer(const boost::system::error_code& e, boost::asio::deadline_timer& timer, int& count)
 {
-	if (count < 5)
+	if (!e && count < 5)
 	{
 		std::cout << "Timer-bind: " << count++ << std::endl;
 		timer.expires_at(timer.expires_at() + boost::posix_time::seconds(1));
