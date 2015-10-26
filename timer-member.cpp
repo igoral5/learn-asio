@@ -29,7 +29,6 @@ public:
 	void handler(const boost::system::error_code& e)
 	{
 		std::cout << "handler error=" << e << std::endl;
-
 		if (!e && m_current < m_count)
 		{
 			std::cout << "timer-member: " << m_current++ << std::endl;
