@@ -1,0 +1,11 @@
+.cproject
+.project
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+timer-async
+timer-bind
+timer-member
+timer-sync
+
