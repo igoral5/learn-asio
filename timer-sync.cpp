@@ -15,7 +15,7 @@ main(int argc, char *argv[])
 try
 {
 	boost::asio::io_service io;
-	boost::asio::deadline_timer timer(io, boost::posix_time::milliseconds(1000));
+	boost::asio::deadline_timer timer(io, boost::posix_time::milliseconds(5000));
 	timer.wait();
 	std::cout << "Timer-sync" << std::endl;
 	return EXIT_SUCCESS;
