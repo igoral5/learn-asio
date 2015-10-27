@@ -4,7 +4,7 @@
  * @date 27 окт. 2015 г.
  */
 
-#define BOOST_ASIO_ENABLE_HANDLER_TRACKING
+/*#define BOOST_ASIO_ENABLE_HANDLER_TRACKING */
 
 #include <iostream>
 #include <exception>
@@ -64,15 +64,29 @@ private:
 	{
 		if (!e)
 		{
-			std::cerr << "time out" << std::endl;
 			if (m_status == connect || m_status == read)
 			{
+				if (m_status == connect)
+				{
+					std::cerr << "time out connect to ";
+				}
+				else
+				{
+					std::cerr << "time out read to ";
+				}
+				std::cerr << m_iterator -> endpoint() << std::endl;
 				m_iterator++;
+				m_socket.cancel();
+				m_socket.close();
 				if (!onConnect())
 				{
 					m_io.stop();
 					m_status = failure;
 				}
+			}
+			else
+			{
+				std::cerr << "time out " << std::endl;;
 			}
 		}
 		else if (e != boost::asio::error::operation_aborted)
@@ -106,10 +120,12 @@ private:
 			restart_timer();
 			m_status = read;
 		}
-		else
+		else if (e != boost::asio::error::operation_aborted)
 		{
 			std::cerr << "connect to " << m_iterator -> endpoint() << ":" << e.message() << std::endl;
 			m_iterator++;
+			m_socket.cancel();
+			m_socket.close();
 			if (!onConnect())
 			{
 				m_timer.cancel();
@@ -139,7 +155,13 @@ private:
 			else
 			{
 				std::cerr << "read: " << e.message() << std::endl;
-				m_status=failure;
+				m_iterator++;
+				m_socket.cancel();
+				m_socket.close();
+				if (!onConnect())
+				{
+					m_status=failure;
+				}
 			}
 		}
 	}
@@ -147,6 +169,7 @@ private:
 	{
 		if (m_iterator != boost::asio::ip::tcp::resolver::iterator())
 		{
+			std::cout << "Connect to " << m_iterator -> endpoint() << std::endl;
 			m_socket.async_connect(m_iterator -> endpoint(), boost::bind(&ClientDayTime::handler_connect,
 					this,
 					boost::asio::placeholders::error));
