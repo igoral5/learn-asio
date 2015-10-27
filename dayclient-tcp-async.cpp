@@ -18,6 +18,14 @@
 class ClientDayTime
 {
 public:
+	enum Status
+	{
+		resolve = 0,
+		connect,
+		read,
+		success,
+		failure
+	};
 	ClientDayTime(boost::asio::io_service& io, const std::string& host_name, const std::string& port, long timeout) :
 		m_io(io),
 		m_resolver(io),
@@ -33,13 +41,17 @@ public:
 				boost::asio::placeholders::error,
 				boost::asio::placeholders::iterator));
 		restart_timer();
-
+		m_status = resolve;
 	}
 	virtual ~ClientDayTime() noexcept = default;
 	ClientDayTime(const ClientDayTime&) = delete;
 	ClientDayTime& operator=(const ClientDayTime&) = delete;
 	ClientDayTime(ClientDayTime&&) noexcept = default;
 	ClientDayTime& operator=(ClientDayTime&&) noexcept = default;
+	Status get_status()
+	{
+		return m_status;
+	}
 private:
 	void restart_timer()
 	{
@@ -53,26 +65,34 @@ private:
 		if (!e)
 		{
 			std::cerr << "time out" << std::endl;
-			m_io.stop();
+			if (m_status == connect || m_status == read)
+			{
+				m_iterator++;
+				if (!onConnect())
+				{
+					m_io.stop();
+					m_status = failure;
+				}
+			}
 		}
 		else if (e != boost::asio::error::operation_aborted)
 		{
 			std::cerr << "timer: " << e.message() << std::endl;
+			m_status = failure;
 		}
 	}
 	void handler_resolver(const boost::system::error_code& e, boost::asio::ip::tcp::resolver::iterator it)
 	{
 		if (!e)
 		{
-			m_socket.async_connect(it -> endpoint(), boost::bind(&ClientDayTime::handler_connect,
-					this,
-					boost::asio::placeholders::error));
-			restart_timer();
+			m_iterator = it;
+			onConnect();
 		}
 		else
 		{
 			std::cerr << "resolve: " << e.message() << std::endl;
 			m_timer.cancel();
+			m_status = failure;
 		}
 	}
 	void handler_connect(const boost::system::error_code& e)
@@ -84,11 +104,17 @@ private:
 					boost::asio::placeholders::error,
 					boost::asio::placeholders::bytes_transferred));
 			restart_timer();
+			m_status = read;
 		}
 		else
 		{
-			std::cerr << "connect: " << e.message() << std::endl;
-			m_timer.cancel();
+			std::cerr << "connect to " << m_iterator -> endpoint() << ":" << e.message() << std::endl;
+			m_iterator++;
+			if (!onConnect())
+			{
+				m_timer.cancel();
+				m_status = failure;
+			}
 		}
 	}
 	void handler_read(const boost::system::error_code& e, size_t len)
@@ -101,14 +127,36 @@ private:
 								boost::asio::placeholders::error,
 								boost::asio::placeholders::bytes_transferred));
 			restart_timer();
+			m_status = read;
 		}
 		else
 		{
 			m_timer.cancel();
-			if (e != boost::asio::error::eof)
+			if (e == boost::asio::error::eof)
+			{
+				m_status = success;
+			}
+			else
 			{
 				std::cerr << "read: " << e.message() << std::endl;
+				m_status=failure;
 			}
+		}
+	}
+	bool onConnect()
+	{
+		if (m_iterator != boost::asio::ip::tcp::resolver::iterator())
+		{
+			m_socket.async_connect(m_iterator -> endpoint(), boost::bind(&ClientDayTime::handler_connect,
+					this,
+					boost::asio::placeholders::error));
+			restart_timer();
+			m_status = connect;
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	}
 	boost::asio::io_service& m_io;
@@ -117,6 +165,8 @@ private:
 	boost::asio::deadline_timer m_timer;
 	long m_timeout;
 	boost::array<char, 128> m_buf;
+	boost::asio::ip::tcp::resolver::iterator m_iterator;
+	Status m_status;
 };
 
 
