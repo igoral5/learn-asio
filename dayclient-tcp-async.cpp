@@ -20,31 +20,42 @@ public:
 		m_io(io),
 		m_resolver(io),
 		m_socket(io),
-		m_timer(io, boost::posix_time::milliseconds(timeout)),
+		m_timer(io),
 		m_timeout(timeout)
 
 	{
 		boost::asio::ip::tcp::resolver::query query(host_name, port);
-		m_resolver.async_resolve(query, boost::bind(&ClientDayTime::handler_resolver,
+		m_resolver.async_resolve(query,
+				boost::bind(&ClientDayTime::handler_resolver,
 				this,
 				boost::asio::placeholders::error,
 				boost::asio::placeholders::iterator));
-		m_timer.async_wait(boost::bind(&ClientDayTime::handler_timer,
-				this,
-				boost::asio::placeholders::error));
+		restart_timer();
 
 	}
 	virtual ~ClientDayTime() noexcept = default;
+	ClientDayTime(const ClientDayTime&) = delete;
+	ClientDayTime& operator=(const ClientDayTime&) = delete;
+	ClientDayTime(ClientDayTime&&) noexcept = default;
+	ClientDayTime& operator=(ClientDayTime&&) noexcept = default;
+private:
+	void restart_timer()
+	{
+		m_timer.expires_from_now(boost::posix_time::milliseconds(m_timeout));
+		m_timer.async_wait(boost::bind(&ClientDayTime::handler_timer,
+				this,
+				boost::asio::placeholders::error));
+	}
 	void handler_timer(const boost::system::error_code& e)
 	{
 		if (!e)
 		{
-			std::cerr << "Превышен лимит операции" << std::endl;
+			std::cerr << "time out" << std::endl;
 			m_io.stop();
 		}
 		else if (e != boost::asio::error::operation_aborted)
 		{
-			std::cerr << "Ошибка timer: " << e.message() << std::endl;
+			std::cerr << "timer: " << e.message() << std::endl;
 		}
 	}
 	void handler_resolver(const boost::system::error_code& e, boost::asio::ip::tcp::resolver::iterator it)
@@ -54,14 +65,11 @@ public:
 			m_socket.async_connect(it -> endpoint(), boost::bind(&ClientDayTime::handler_connect,
 					this,
 					boost::asio::placeholders::error));
-			m_timer.expires_from_now(boost::posix_time::milliseconds(m_timeout));
-			m_timer.async_wait(boost::bind(&ClientDayTime::handler_timer,
-					this,
-					boost::asio::placeholders::error));
+			restart_timer();
 		}
 		else
 		{
-			std::cerr << "Ошибка resolv: " << e.message() << std::endl;
+			std::cerr << "resolve: " << e.message() << std::endl;
 			m_timer.cancel();
 		}
 	}
@@ -73,14 +81,11 @@ public:
 					this,
 					boost::asio::placeholders::error,
 					boost::asio::placeholders::bytes_transferred));
-			m_timer.expires_from_now(boost::posix_time::milliseconds(m_timeout));
-			m_timer.async_wait(boost::bind(&ClientDayTime::handler_timer,
-								this,
-								boost::asio::placeholders::error));
+			restart_timer();
 		}
 		else
 		{
-			std::cerr << "Ошибка connect: " << e.message() << std::endl;
+			std::cerr << "connect: " << e.message() << std::endl;
 			m_timer.cancel();
 		}
 	}
@@ -93,21 +98,17 @@ public:
 								this,
 								boost::asio::placeholders::error,
 								boost::asio::placeholders::bytes_transferred));
-			m_timer.expires_from_now(boost::posix_time::milliseconds(m_timeout));
-			m_timer.async_wait(boost::bind(&ClientDayTime::handler_timer,
-								this,
-								boost::asio::placeholders::error));
+			restart_timer();
 		}
 		else
 		{
 			m_timer.cancel();
 			if (e != boost::asio::error::eof)
 			{
-				std::cerr << "Ошибка read: " << e.message() << std::endl;
+				std::cerr << "read: " << e.message() << std::endl;
 			}
 		}
 	}
-private:
 	boost::asio::io_service& m_io;
 	boost::asio::ip::tcp::resolver m_resolver;
 	boost::asio::ip::tcp::socket m_socket;
