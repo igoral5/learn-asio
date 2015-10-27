@@ -16,7 +16,7 @@
 class ClientDayTime
 {
 public:
-	ClientDayTime(boost::asio::io_service& io, const std::string& host_name, long timeout) :
+	ClientDayTime(boost::asio::io_service& io, const std::string& host_name, const std::string& port, long timeout) :
 		m_io(io),
 		m_resolver(io),
 		m_socket(io),
@@ -24,7 +24,7 @@ public:
 		m_timeout(timeout)
 
 	{
-		boost::asio::ip::tcp::resolver::query query(host_name, "daytime");
+		boost::asio::ip::tcp::resolver::query query(host_name, port);
 		m_resolver.async_resolve(query, boost::bind(&ClientDayTime::handler_resolver,
 				this,
 				boost::asio::placeholders::error,
@@ -121,13 +121,13 @@ int
 main(int argc, char *argv[])
 try
 {
-	if (argc != 2)
+	if (argc != 3)
 	{
-		std::cerr << "Usage: dayclient-tcp-asyn <host>" << std::endl;
+		std::cerr << "Usage: dayclient-tcp-asyn <host> <port>" << std::endl;
 		return EXIT_FAILURE;
 	}
 	boost::asio::io_service io;
-	ClientDayTime client(io, argv[1], 1000);
+	ClientDayTime client(io, argv[1], argv[2], 1000);
 	io.run();
 	return EXIT_SUCCESS;
 }

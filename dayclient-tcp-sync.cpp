@@ -16,14 +16,14 @@ int
 main(int argc, char *argv[])
 try
 {
-	if (argc != 2)
+	if (argc != 3)
 	{
-		std::cerr << "Usage: dayclient-tcp-syn <host>" << std::endl;
+		std::cerr << "Usage: dayclient-tcp-syn <host> <port>" << std::endl;
 		return EXIT_FAILURE;
 	}
 	boost::asio::io_service io;
 	boost::asio::ip::tcp::resolver resolver(io);
-	boost::asio::ip::tcp::resolver::query query(argv[1], "daytime");
+	boost::asio::ip::tcp::resolver::query query(argv[1], argv[2]);
 	boost::asio::ip::tcp::resolver::iterator ep_iterator = resolver.resolve(query);
 	boost::asio::ip::tcp::socket socket(io);
 	boost::asio::connect(socket, ep_iterator);
