@@ -4,6 +4,8 @@
  * @date 27 окт. 2015 г.
  */
 
+#define BOOST_ASIO_ENABLE_HANDLER_TRACKING
+
 #include <iostream>
 #include <exception>
 #include <cstdlib>
