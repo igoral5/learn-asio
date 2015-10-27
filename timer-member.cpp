@@ -48,7 +48,7 @@ main(int argc, char *argv[])
 try
 {
 	boost::asio::io_service io;
-	Handler handler(io, 0, 2, 5);
+	Handler handler(io, 1, 1, 5);
 	io.run();
 	return EXIT_SUCCESS;
 }

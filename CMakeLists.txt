@@ -17,3 +17,6 @@ target_link_libraries(timer-bind boost_system)
 
 add_executable(timer-member timer-member.cpp)
 target_link_libraries(timer-member boost_system)
+
+add_executable(timer-thread timer-thread.cpp)
+target_link_libraries(timer-thread boost_system boost_thread)
