@@ -20,3 +20,9 @@ target_link_libraries(timer-member boost_system)
 
 add_executable(timer-thread timer-thread.cpp)
 target_link_libraries(timer-thread boost_system boost_thread)
+
+add_executable(dayclient-tcp-sync dayclient-tcp-sync.cpp)
+target_link_libraries(dayclient-tcp-sync boost_system pthread)
+
+add_executable(dayclient-tcp-async dayclient-tcp-async.cpp)
+target_link_libraries(dayclient-tcp-async boost_system pthread)
