@@ -29,3 +29,6 @@ target_link_libraries(dayclient-tcp-async boost_system pthread)
 
 add_executable(dayserver-tcp-sync dayserver-tcp-sync.cpp)
 target_link_libraries(dayserver-tcp-sync boost_system)
+
+add_executable(dayserver-tcp-async dayserver-tcp-async.cpp)
+target_link_libraries(dayserver-tcp-async boost_system)

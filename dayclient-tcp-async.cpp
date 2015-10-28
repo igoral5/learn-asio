@@ -27,7 +27,6 @@ public:
 		failure
 	};
 	ClientDayTime(boost::asio::io_service& io, const std::string& host_name, const std::string& port, long timeout, size_t max_num) :
-		m_io(io),
 		m_resolver(io),
 		m_socket(io),
 		m_timer(io),
@@ -71,7 +70,7 @@ private:
 				std::cerr << "time out connect to " << m_iterator -> endpoint() << std::endl;
 				if (!next_connect())
 				{
-					m_io.stop();
+					m_timer.get_io_service().stop();
 					m_status = failure;
 				}
 				break;
@@ -91,7 +90,7 @@ private:
 		else if (e != boost::asio::error::operation_aborted)
 		{
 			std::cerr << "timer: " << e.message() << std::endl;
-			m_io.stop();
+			m_timer.get_io_service().stop();
 			m_status = failure;
 		}
 	}
@@ -195,7 +194,6 @@ private:
 			}
 		}
 	}
-	boost::asio::io_service& m_io;
 	boost::asio::ip::tcp::resolver m_resolver;
 	boost::asio::ip::tcp::socket m_socket;
 	boost::asio::deadline_timer m_timer;
