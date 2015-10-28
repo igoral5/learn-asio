@@ -14,3 +14,4 @@ dayclient-tcp-async
 dayserver-tcp-sync
 dayserver-tcp-async
 dayclient-udp-sync
+dayserver-udp-sync
