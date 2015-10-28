@@ -11,3 +11,4 @@ timer-sync
 timer-thread
 dayclient-tcp-sync
 dayclient-tcp-async
+dayserver-tcp-sync

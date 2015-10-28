@@ -185,10 +185,7 @@ private:
 		m_num++;
 		if (m_num < m_max_num)
 		{
-			if (!reconnect())
-			{
-				m_status = failure;
-			}
+			reconnect();
 		}
 		else
 		{
