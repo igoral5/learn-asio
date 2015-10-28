@@ -4,7 +4,7 @@
  * @date 27 окт. 2015 г.
  */
 
-/*#define BOOST_ASIO_ENABLE_HANDLER_TRACKING */
+#define BOOST_ASIO_ENABLE_HANDLER_TRACKING
 
 #include <iostream>
 #include <exception>
@@ -20,19 +20,20 @@ class ClientDayTime
 public:
 	enum Status
 	{
-		resolve = 0,
-		connect,
-		read,
+		resolving = 0,
+		connecting,
+		reading,
 		success,
 		failure
 	};
-	ClientDayTime(boost::asio::io_service& io, const std::string& host_name, const std::string& port, long timeout) :
+	ClientDayTime(boost::asio::io_service& io, const std::string& host_name, const std::string& port, long timeout, size_t max_num) :
 		m_io(io),
 		m_resolver(io),
 		m_socket(io),
 		m_timer(io),
-		m_timeout(timeout)
-
+		m_timeout(timeout),
+		m_num(0),
+		m_max_num(max_num)
 	{
 		boost::asio::ip::tcp::resolver::query query(host_name, port);
 		m_resolver.async_resolve(query,
@@ -41,7 +42,7 @@ public:
 				boost::asio::placeholders::error,
 				boost::asio::placeholders::iterator));
 		restart_timer();
-		m_status = resolve;
+		m_status = resolving;
 	}
 	virtual ~ClientDayTime() noexcept = default;
 	ClientDayTime(const ClientDayTime&) = delete;
@@ -64,34 +65,33 @@ private:
 	{
 		if (!e)
 		{
-			if (m_status == connect || m_status == read)
+			switch (m_status)
 			{
-				if (m_status == connect)
-				{
-					std::cerr << "time out connect to ";
-				}
-				else
-				{
-					std::cerr << "time out read to ";
-				}
-				std::cerr << m_iterator -> endpoint() << std::endl;
-				m_iterator++;
-				m_socket.cancel();
-				m_socket.close();
-				if (!onConnect())
+			case connecting:
+				std::cerr << "time out connect to " << m_iterator -> endpoint() << std::endl;
+				if (!next_connect())
 				{
 					m_io.stop();
 					m_status = failure;
 				}
-			}
-			else
-			{
-				std::cerr << "time out " << std::endl;;
+				break;
+			case reading:
+				std::cerr << "time out reading to " << m_iterator -> endpoint() << std::endl;
+				reread();
+				break;
+			case resolving:
+				std::cerr << "time out resolve" << std::endl;
+				m_resolver.cancel();
+				m_status = failure;
+				break;
+			default:
+				break;
 			}
 		}
 		else if (e != boost::asio::error::operation_aborted)
 		{
 			std::cerr << "timer: " << e.message() << std::endl;
+			m_io.stop();
 			m_status = failure;
 		}
 	}
@@ -100,9 +100,9 @@ private:
 		if (!e)
 		{
 			m_iterator = it;
-			onConnect();
+			connect();
 		}
-		else
+		else if (e != boost::asio::error::operation_aborted)
 		{
 			std::cerr << "resolve: " << e.message() << std::endl;
 			m_timer.cancel();
@@ -118,15 +118,12 @@ private:
 					boost::asio::placeholders::error,
 					boost::asio::placeholders::bytes_transferred));
 			restart_timer();
-			m_status = read;
+			m_status = reading;
 		}
 		else if (e != boost::asio::error::operation_aborted)
 		{
 			std::cerr << "connect to " << m_iterator -> endpoint() << ":" << e.message() << std::endl;
-			m_iterator++;
-			m_socket.cancel();
-			m_socket.close();
-			if (!onConnect())
+			if (!next_connect())
 			{
 				m_timer.cancel();
 				m_status = failure;
@@ -143,29 +140,21 @@ private:
 								boost::asio::placeholders::error,
 								boost::asio::placeholders::bytes_transferred));
 			restart_timer();
-			m_status = read;
+			m_status = reading;
 		}
-		else
+		else if (e == boost::asio::error::eof)
 		{
 			m_timer.cancel();
-			if (e == boost::asio::error::eof)
-			{
-				m_status = success;
-			}
-			else
-			{
-				std::cerr << "read: " << e.message() << std::endl;
-				m_iterator++;
-				m_socket.cancel();
-				m_socket.close();
-				if (!onConnect())
-				{
-					m_status=failure;
-				}
-			}
+			m_status = success;
+		}
+		else if (e != boost::asio::error::operation_aborted)
+		{
+			m_timer.cancel();
+			std::cerr << "read: " << e.message() << std::endl;
+			reread();
 		}
 	}
-	bool onConnect()
+	bool connect()
 	{
 		if (m_iterator != boost::asio::ip::tcp::resolver::iterator())
 		{
@@ -174,12 +163,39 @@ private:
 					this,
 					boost::asio::placeholders::error));
 			restart_timer();
-			m_status = connect;
+			m_status = connecting;
 			return true;
+		}
+		return false;
+	}
+	bool reconnect()
+	{
+		m_socket.cancel();
+		m_socket.close();
+		return connect();
+	}
+	bool next_connect()
+	{
+		m_iterator++;
+		m_num = 0;
+		return reconnect();
+	}
+	void reread()
+	{
+		m_num++;
+		if (m_num < m_max_num)
+		{
+			if (!reconnect())
+			{
+				m_status = failure;
+			}
 		}
 		else
 		{
-			return false;
+			if(!next_connect())
+			{
+				m_status = failure;
+			}
 		}
 	}
 	boost::asio::io_service& m_io;
@@ -190,6 +206,8 @@ private:
 	boost::array<char, 128> m_buf;
 	boost::asio::ip::tcp::resolver::iterator m_iterator;
 	Status m_status;
+	size_t m_num;
+	size_t m_max_num;
 };
 
 
@@ -203,7 +221,7 @@ try
 		return EXIT_FAILURE;
 	}
 	boost::asio::io_service io;
-	ClientDayTime client(io, argv[1], argv[2], 1000);
+	ClientDayTime client(io, argv[1], argv[2], 1000, 3);
 	io.run();
 	return EXIT_SUCCESS;
 }
