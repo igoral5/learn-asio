@@ -24,13 +24,13 @@ public:
         m_count(0)
     {
         m_timer1.async_wait(m_strand.wrap(boost::bind(
-        		&Handler::handler1,
-				this,
-				boost::asio::placeholders::error)));
+                &Handler::handler1,
+                this,
+                boost::asio::placeholders::error)));
         m_timer2.async_wait(m_strand.wrap(boost::bind(
-        		&Handler::handler2,
-				this,
-				boost::asio::placeholders::error)));
+                &Handler::handler2,
+                this,
+                boost::asio::placeholders::error)));
     }
     virtual ~Handler() noexcept
     {
@@ -41,12 +41,12 @@ public:
         if (!e && m_count < 10)
         {
             std::cout << "Timer1: " << m_count++ << " thread_id: " << boost::this_thread::get_id()
-            		<< std::endl;
+                    << std::endl;
             m_timer1.expires_at(m_timer1.expires_at() + boost::posix_time::seconds(1));
             m_timer1.async_wait(m_strand.wrap(boost::bind(
-            		&Handler::handler1,
-					this,
-					boost::asio::placeholders::error)));
+                    &Handler::handler1,
+                    this,
+                    boost::asio::placeholders::error)));
         }
     }
     void handler2(const boost::system::error_code& e)
@@ -54,12 +54,12 @@ public:
         if (!e && m_count < 10)
         {
             std::cout << "Timer2: " << m_count++ << " thread_id: " << boost::this_thread::get_id()
-            		<< std::endl;
+                    << std::endl;
             m_timer2.expires_at(m_timer2.expires_at() + boost::posix_time::seconds(1));
             m_timer2.async_wait(m_strand.wrap(boost::bind(
-            		&Handler::handler2,
-					this,
-					boost::asio::placeholders::error)));
+                    &Handler::handler2,
+                    this,
+                    boost::asio::placeholders::error)));
         }
     }
 private:
@@ -76,8 +76,8 @@ try
     boost::asio::io_service io;
     Handler handler(io);
     boost::thread th(boost::bind(
-    		&boost::asio::io_service::run,
-			&io));
+            &boost::asio::io_service::run,
+            &io));
     io.run();
     th.join();
     return EXIT_SUCCESS;

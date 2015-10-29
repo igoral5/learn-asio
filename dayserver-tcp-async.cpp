@@ -80,8 +80,8 @@ private:
     {
         if (!e)
         {
-        	std::cerr << "accept connection from " << new_connection -> socket().remote_endpoint()
-        			<< std::endl;
+            std::cerr << "accept connection from " << new_connection -> socket().remote_endpoint()
+                    << std::endl;
             new_connection -> start();
         }
         start_accept();

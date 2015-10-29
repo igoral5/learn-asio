@@ -14,7 +14,7 @@
 void
 handler(const boost::system::error_code& e)
 {
-    std::cout << "Timer-async err=" << e << std::endl;
+    std::cout << "timer-async: " << e.message() << std::endl;
 }
 
 int

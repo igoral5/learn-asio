@@ -44,3 +44,6 @@ target_link_libraries(dayserver-udp-async boost_system)
 
 add_executable(dayclient-udp-async dayclient-udp-async.cpp)
 target_link_libraries(dayclient-udp-async boost_system pthread)
+
+add_executable(dayserver-comb-async dayserver-comb-async.cpp)
+target_link_libraries(dayserver-comb-async boost_system)

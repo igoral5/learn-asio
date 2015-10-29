@@ -14,17 +14,17 @@
 
 void
 handler_dead_timer(const boost::system::error_code& e, boost::asio::deadline_timer& timer,
-		int& count)
+        int& count)
 {
     if (!e && count < 5)
     {
         std::cout << "Timer-bind: " << count++ << std::endl;
         timer.expires_at(timer.expires_at() + boost::posix_time::seconds(1));
         timer.async_wait(boost::bind(
-        		handler_dead_timer,
-				boost::asio::placeholders::error,
-				boost::ref(timer),
-				boost::ref(count)));
+                handler_dead_timer,
+                boost::asio::placeholders::error,
+                boost::ref(timer),
+                boost::ref(count)));
     }
 }
 
@@ -37,10 +37,10 @@ try
     boost::asio::deadline_timer timer(io, boost::posix_time::seconds(1));
     int count = 0;
     timer.async_wait(boost::bind(
-    		handler_dead_timer,
-			boost::asio::placeholders::error,
-			boost::ref(timer),
-			boost::ref(count)));
+            handler_dead_timer,
+            boost::asio::placeholders::error,
+            boost::ref(timer),
+            boost::ref(count)));
     io.run();
     std::cout << "Final timer-bind: " << count << std::endl;
     return EXIT_SUCCESS;

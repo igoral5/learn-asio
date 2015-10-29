@@ -20,9 +20,9 @@ public:
         m_step(step), m_count(count), m_current(0)
     {
         m_timer.async_wait(boost::bind(
-        		&Handler::handler,
-				this,
-				boost::asio::placeholders::error));
+                &Handler::handler,
+                this,
+                boost::asio::placeholders::error));
     }
     virtual ~Handler() noexcept
     {
@@ -36,9 +36,9 @@ public:
             std::cout << "timer-member: " << m_current++ << std::endl;
             m_timer.expires_at(m_timer.expires_at() + boost::posix_time::seconds(m_step));
             m_timer.async_wait(boost::bind(
-            		&Handler::handler,
-					this,
-					boost::asio::placeholders::error));
+                    &Handler::handler,
+                    this,
+                    boost::asio::placeholders::error));
         }
     }
 private:

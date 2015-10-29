@@ -21,7 +21,7 @@ class udp_client
 {
 public:
     udp_client(boost::asio::io_service& io, const std::string& host, const std::string& port,
-    		long timeout) :
+            long timeout) :
         m_resolver(io),
         m_socket(io),
         m_timer(io),
@@ -61,7 +61,7 @@ private:
         }
     }
     void handler_resolver(const boost::system::error_code& e,
-    		boost::asio::ip::udp::resolver::iterator it)
+            boost::asio::ip::udp::resolver::iterator it)
     {
         if (!e)
         {

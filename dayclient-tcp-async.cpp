@@ -27,9 +27,9 @@ public:
         failure
     };
     ClientDayTime(boost::asio::io_service& io,
-    		const std::string& host_name,
-    		const std::string& port,
-    		long timeout, size_t max_num) :
+            const std::string& host_name,
+            const std::string& port,
+            long timeout, size_t max_num) :
         m_resolver(io),
         m_socket(io),
         m_timer(io),
@@ -98,7 +98,7 @@ private:
         }
     }
     void handler_resolver(const boost::system::error_code& e,
-    		boost::asio::ip::tcp::resolver::iterator it)
+            boost::asio::ip::tcp::resolver::iterator it)
     {
         if (!e)
         {
@@ -117,7 +117,7 @@ private:
         if (!e)
         {
             m_socket.async_read_some(boost::asio::buffer(m_buf),
-            		boost::bind(&ClientDayTime::handler_read,
+                    boost::bind(&ClientDayTime::handler_read,
                     this,
                     boost::asio::placeholders::error,
                     boost::asio::placeholders::bytes_transferred));
@@ -127,7 +127,7 @@ private:
         else if (e != boost::asio::error::operation_aborted)
         {
             std::cerr << "connect to " << m_iterator -> endpoint() << ":" << e.message()
-            		<< std::endl;
+                    << std::endl;
             if (!next_connect())
             {
                 m_timer.cancel();
@@ -141,7 +141,7 @@ private:
         {
             std::cout.write(m_buf.data(), len);
             m_socket.async_read_some(boost::asio::buffer(m_buf), boost::bind(
-            		&ClientDayTime::handler_read,
+                    &ClientDayTime::handler_read,
                     this,
                     boost::asio::placeholders::error,
                     boost::asio::placeholders::bytes_transferred));
@@ -166,7 +166,7 @@ private:
         {
             std::cout << "Connect to " << m_iterator -> endpoint() << std::endl;
             m_socket.async_connect(m_iterator -> endpoint(), boost::bind(
-            		&ClientDayTime::handler_connect,
+                    &ClientDayTime::handler_connect,
                     this,
                     boost::asio::placeholders::error));
             restart_timer();

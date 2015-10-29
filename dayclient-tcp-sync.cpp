@@ -27,7 +27,6 @@ try
     boost::asio::ip::tcp::resolver::iterator ep_iterator = resolver.resolve(query);
     boost::asio::ip::tcp::socket socket(io);
     boost::asio::connect(socket, ep_iterator);
-
     for(;;)
     {
         boost::array<char, 128> buf;
@@ -38,7 +37,6 @@ try
         else if (error)
             throw boost::system::system_error(error);
         std::cout.write(buf.data(), len);
-
     }
     return EXIT_SUCCESS;
 }
