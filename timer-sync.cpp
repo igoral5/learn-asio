@@ -14,19 +14,19 @@ int
 main(int argc, char *argv[])
 try
 {
-	boost::asio::io_service io;
-	boost::asio::deadline_timer timer(io, boost::posix_time::milliseconds(5000));
-	timer.wait();
-	std::cout << "Timer-sync" << std::endl;
-	return EXIT_SUCCESS;
+    boost::asio::io_service io;
+    boost::asio::deadline_timer timer(io, boost::posix_time::milliseconds(5000));
+    timer.wait();
+    std::cout << "Timer-sync" << std::endl;
+    return EXIT_SUCCESS;
 }
 catch (const std::exception& e)
 {
-	std::cerr << "Exception: " << e.what() << std::endl;
+    std::cerr << "Exception: " << e.what() << std::endl;
     return EXIT_FAILURE;
 }
 catch(...)
 {
-	std::cerr << "Unknown exceprion" << std::endl;
+    std::cerr << "Unknown exceprion" << std::endl;
     return EXIT_FAILURE;
 }

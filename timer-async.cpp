@@ -14,27 +14,27 @@
 void
 handler(const boost::system::error_code& e)
 {
-	std::cout << "Timer-async err=" << e << std::endl;
+    std::cout << "Timer-async err=" << e << std::endl;
 }
 
 int
 main(int argc, char *argv[])
 try
 {
-	boost::asio::io_service io;
-	boost::asio::deadline_timer timer(io, boost::posix_time::seconds(5));
-	timer.async_wait(handler);
-	io.run();
-	std::cout << "Final timer-async" << std::endl;
-	return EXIT_SUCCESS;
+    boost::asio::io_service io;
+    boost::asio::deadline_timer timer(io, boost::posix_time::seconds(5));
+    timer.async_wait(handler);
+    io.run();
+    std::cout << "Final timer-async" << std::endl;
+    return EXIT_SUCCESS;
 }
 catch (const std::exception& e)
 {
-	std::cerr << "Exception: " << e.what() << std::endl;
+    std::cerr << "Exception: " << e.what() << std::endl;
     return EXIT_FAILURE;
 }
 catch(...)
 {
-	std::cerr << "Unknown exceprion" << std::endl;
+    std::cerr << "Unknown exceprion" << std::endl;
     return EXIT_FAILURE;
 }

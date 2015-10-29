@@ -15,31 +15,37 @@
 class Handler
 {
 public:
-	Handler(boost::asio::io_service& io, long beg, long step, size_t count) :
-		m_timer(io, boost::posix_time::seconds(beg)),
-		m_step(step), m_count(count), m_current(0)
-	{
-		m_timer.async_wait(boost::bind(&Handler::handler, this, boost::asio::placeholders::error));
-	}
-	virtual ~Handler() noexcept
-	{
-		std::cout << "timer-member final: " << m_current << std::endl;
-	}
-	void handler(const boost::system::error_code& e)
-	{
-		std::cout << "handler error=" << e << std::endl;
-		if (!e && m_current < m_count)
-		{
-			std::cout << "timer-member: " << m_current++ << std::endl;
-			m_timer.expires_at(m_timer.expires_at() + boost::posix_time::seconds(m_step));
-			m_timer.async_wait(boost::bind(&Handler::handler, this, boost::asio::placeholders::error));
-		}
-	}
+    Handler(boost::asio::io_service& io, long beg, long step, size_t count) :
+        m_timer(io, boost::posix_time::seconds(beg)),
+        m_step(step), m_count(count), m_current(0)
+    {
+        m_timer.async_wait(boost::bind(
+        		&Handler::handler,
+				this,
+				boost::asio::placeholders::error));
+    }
+    virtual ~Handler() noexcept
+    {
+        std::cout << "timer-member final: " << m_current << std::endl;
+    }
+    void handler(const boost::system::error_code& e)
+    {
+        std::cout << "handler error=" << e << std::endl;
+        if (!e && m_current < m_count)
+        {
+            std::cout << "timer-member: " << m_current++ << std::endl;
+            m_timer.expires_at(m_timer.expires_at() + boost::posix_time::seconds(m_step));
+            m_timer.async_wait(boost::bind(
+            		&Handler::handler,
+					this,
+					boost::asio::placeholders::error));
+        }
+    }
 private:
-	boost::asio::deadline_timer m_timer;
-	long m_step;
-	size_t m_count;
-	size_t m_current;
+    boost::asio::deadline_timer m_timer;
+    long m_step;
+    size_t m_count;
+    size_t m_current;
 };
 
 
@@ -47,18 +53,18 @@ int
 main(int argc, char *argv[])
 try
 {
-	boost::asio::io_service io;
-	Handler handler(io, 1, 1, 5);
-	io.run();
-	return EXIT_SUCCESS;
+    boost::asio::io_service io;
+    Handler handler(io, 1, 1, 5);
+    io.run();
+    return EXIT_SUCCESS;
 }
 catch (const std::exception& e)
 {
-	std::cerr << "Exception: " << e.what() << std::endl;
+    std::cerr << "Exception: " << e.what() << std::endl;
     return EXIT_FAILURE;
 }
 catch(...)
 {
-	std::cerr << "Unknown exceprion" << std::endl;
+    std::cerr << "Unknown exceprion" << std::endl;
     return EXIT_FAILURE;
 }
